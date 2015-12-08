@@ -4,7 +4,7 @@
 # Author:   Dmitry Baryshnikov, polimax@mail.ru
 ################################################################################
 # Copyright (C) 2015, NextGIS <info@nextgis.com>
-# Copyright (C) 2015 Dmitry Baryshnikov
+# Copyright (C) 2015, Dmitry Baryshnikov
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@ set(DEPENDENCY_LIB ${DEPENDENCY_LIB} "")
 
 function(find_anyproject name)
 
-    #set(options REQUIRED OFF)
     #cmake_parse_arguments(find_anyproject "${options}" ${ARGN} )
 
     option(WITH_${name} "Set ON to use ${name}" ON)
@@ -57,6 +56,6 @@ endfunction()
 function(target_link_extlibraries name)
     add_dependencies(${name} ${DEPENDENCY_LIB})  
     list(REMOVE_DUPLICATES TARGET_LINK_LIB)
-    target_link_libraries(${name} ${TARGET_LINK_LIB})    
+    target_link_libraries(${name} ${TARGET_LINK_LIB})
 endfunction()
 

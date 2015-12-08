@@ -4,7 +4,7 @@
 # Author:   Dmitry Baryshnikov, polimax@mail.ru
 ################################################################################
 # Copyright (C) 2015, NextGIS <info@nextgis.com>
-# Copyright (C) 2015 Dmitry Baryshnikov
+# Copyright (C) 2015, Dmitry Baryshnikov
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,51 +26,44 @@
 ################################################################################
 
 function(find_extproject name)
-
-    include(ExternalProject)
-
-    set(ep_base "${CMAKE_BINARY_DIR}/third-party")
-    set_property(DIRECTORY PROPERTY "EP_BASE" ${ep_base})
-    set(EP_URL "https://github.com/nextgis-extra")
-    
     # get some properties from <cmakemodules>/findext${name}.cmake file
     include(FindExt${name})
     
+    set(EP_BASE "${CMAKE_BINARY_DIR}/third-party")
+    set(EP_URL "https://github.com/nextgis-extra")
+    
+    include(ExternalProject)
+    set_property(DIRECTORY PROPERTY "EP_BASE" ${EP_BASE})
+    
     ExternalProject_Add(${name}_EP
         GIT_REPOSITORY ${EP_URL}/${repo_name}
-        INSTALL_COMMAND ""
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     )
-    
-    if(BUILD_SHARED_LIBS)
-        add_library(${name} SHARED IMPORTED GLOBAL)
-    else()
-        add_library(${name} STATIC IMPORTED GLOBAL)
+   
+    if(NOT EXISTS "${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake")
+        find_package(Git)
+        if(NOT GIT_FOUND)
+          message(FATAL_ERROR "git is required")
+          return()
+        endif()
+        execute_process(COMMAND ${GIT_EXECUTABLE} clone ${EP_URL}/${repo_name} ${name}_EP
+           WORKING_DIRECTORY  ${EP_BASE}/Source)
     endif()
-    
-    add_dependencies(${name} ${name}_EP)  
-    
-    set(DEPENDENCY_LIB ${DEPENDENCY_LIB} ${name} PARENT_SCOPE)
-    
-# Edition 1   
-    foreach( LIB_NAME ${repo_output} )
-        set( TARGET_LINK_EXTLIB ${TARGET_LINK_EXTLIB} ${ep_base}/Build/${name}_EP/${LIB_NAME} )
-    endforeach() 
-    set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${TARGET_LINK_EXTLIB} PARENT_SCOPE)
-
-# Edition 2
-#    if(NOT EXISTS "${ep_base}/Build/${name}_EP/${repo_project}-exports.cmake")
-#        execute_process(COMMAND git clone ${EP_URL}/${repo_name} ${name}_EP
-#            WORKING_DIRECTORY  ${ep_base}/Source)
-#    endif()
-#      
-#    execute_process(COMMAND ${CMAKE_COMMAND} ${ep_base}/Source/${name}_EP
-#        WORKING_DIRECTORY ${ep_base}/Build/${name}_EP )
-#          
-#    include(${ep_base}/Build/${name}_EP/${repo_project}-exports.cmake)
-#    
-#    get_target_property(${name}_LIBLOC ${repo_project} IMPORTED_LOCATION_NOCONFIG)
-#    
-#    set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${${name}_LIBLOC} PARENT_SCOPE)
-
      
+    execute_process(COMMAND ${CMAKE_COMMAND} ${EP_BASE}/Source/${name}_EP
+       "-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP"
+       WORKING_DIRECTORY ${EP_BASE}/Build/${name}_EP )
+
+         
+    include(${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake)  
+
+    add_dependencies(${repo_project} ${name}_EP)  
+    
+    set(DEPENDENCY_LIB ${DEPENDENCY_LIB} ${repo_project} PARENT_SCOPE)   
+    set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${repo_project} PARENT_SCOPE)
+    
+    include_directories(${EP_BASE}/Build/${name}_EP ${EP_BASE}/Source/${name}_EP)
+    
+    install( DIRECTORY ${EP_BASE}/Install/${name}_EP/ DESTINATION ${CMAKE_INSTALL_PREFIX} )
+    
 endfunction()

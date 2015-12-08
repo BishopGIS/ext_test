@@ -33,18 +33,3 @@ else()
     set(repo_project zlibstatic)
 endif()
 
-if(UNIX)
-    # On unix-like platforms the library is almost always called libz
-    if(BUILD_SHARED_LIBS) 
-        set(repo_output ${CMAKE_SHARED_LIBRARY_PREFIX}z${CMAKE_SHARED_LIBRARY_SUFFIX})
-    else()   
-        set(repo_output ${CMAKE_STATIC_LIBRARY_PREFIX}z${CMAKE_STATIC_LIBRARY_SUFFIX})
-    endif()
-elseif(WIN32)
-    if(BUILD_SHARED_LIBS) 
-        # Creates zlib1.dll when building shared library version
-        set(repo_output zlib1${CMAKE_SHARED_LIBRARY_SUFFIX})
-    else()   
-        set(repo_output zlib${CMAKE_STATIC_LIBRARY_SUFFIX})
-    endif()
-endif()

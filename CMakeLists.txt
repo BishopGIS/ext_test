@@ -23,3 +23,9 @@ add_executable(${APP_NAME} main.cpp)
 
 target_link_extlibraries(${APP_NAME})
 
+install(TARGETS ${APP_NAME}
+    RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+)
+
