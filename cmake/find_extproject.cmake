@@ -37,7 +37,8 @@ function(find_extproject name)
     
     ExternalProject_Add(${name}_EP
         GIT_REPOSITORY ${EP_URL}/${repo_name}
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+        CMAKE_CACHE_DEFAULT_ARGS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     )
    
     if(NOT EXISTS "${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake")
