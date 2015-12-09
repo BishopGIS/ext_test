@@ -34,11 +34,11 @@ function(find_extproject name)
     
     include(ExternalProject)
     set_property(DIRECTORY PROPERTY "EP_BASE" ${EP_BASE})
-    
+  
     ExternalProject_Add(${name}_EP
         GIT_REPOSITORY ${EP_URL}/${repo_name}
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
-        CMAKE_CACHE_DEFAULT_ARGS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP
+                   -DEXT_BUILD_SHARED_LIB=${BUILD_SHARED_LIBS}
     )
    
     if(NOT EXISTS "${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake")
@@ -52,7 +52,8 @@ function(find_extproject name)
     endif()
      
     execute_process(COMMAND ${CMAKE_COMMAND} ${EP_BASE}/Source/${name}_EP
-       "-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP"
+       "-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP" 
+       "-DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}"
        WORKING_DIRECTORY ${EP_BASE}/Build/${name}_EP )
 
          
