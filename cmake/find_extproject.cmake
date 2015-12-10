@@ -26,19 +26,52 @@
 ################################################################################
 
 function(find_extproject name)
+  
+    include (CMakeParseArguments)
+  
+    set(options OPTIONAL)
+    set(oneValueArgs )
+    set(multiValueArgs CMAKE_ARGS)
+    cmake_parse_arguments(find_extproject "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+    
     # get some properties from <cmakemodules>/findext${name}.cmake file
     include(FindExt${name})
     
-    set(EP_BASE "${CMAKE_BINARY_DIR}/third-party")
-    set(EP_URL "https://github.com/nextgis-extra")
-    
+    # set default third party lib path
+    if(NOT DEFINED EP_BASE)
+        set(EP_BASE "${CMAKE_BINARY_DIR}/third-party")
+    endif()
+
+    # set default url
+    if(NOT DEFINED EP_URL)
+        set(EP_URL "https://github.com/nextgis-extra")
+    endif()  
+
+    list(APPEND find_extproject_CMAKE_ARGS -DEP_BASE=${EP_BASE})   
+    list(APPEND find_extproject_CMAKE_ARGS -DEP_URL=${EP_URL})       
+        
     include(ExternalProject)
     set_property(DIRECTORY PROPERTY "EP_BASE" ${EP_BASE})
+
+    
+    # search CMAKE_INSTALL_PREFIX
+    string (REGEX MATCHALL "(^|;)-DCMAKE_INSTALL_PREFIX[A-Za-z0-9_]*" _matchedVars "${find_extproject_CMAKE_ARGS}")    
+    list(LENGTH _matchedVars _list_size)    
+    if(_list_size EQUAL 0)
+        list(APPEND find_extproject_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP)
+    endif()
+    
+    # search CMAKE_INSTALL_PREFIX
+    string (REGEX MATCHALL "(^|;)-DBUILD_SHARED_LIB[A-Za-z0-9_]*" _matchedVars "${find_extproject_CMAKE_ARGS}")   
+    unset(_matchedVars)
+    list(LENGTH _matchedVars _list_size)    
+    if(_list_size EQUAL 0)
+        list(APPEND find_extproject_CMAKE_ARGS -DBUILD_SHARED_LIB=${BUILD_SHARED_LIBS})
+    endif()
   
     ExternalProject_Add(${name}_EP
         GIT_REPOSITORY ${EP_URL}/${repo_name}
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP
-                   -DEXT_BUILD_SHARED_LIB=${BUILD_SHARED_LIBS}
+        CMAKE_ARGS ${find_extproject_CMAKE_ARGS}
     )
    
     if(NOT EXISTS "${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake")
@@ -52,10 +85,8 @@ function(find_extproject name)
     endif()
      
     execute_process(COMMAND ${CMAKE_COMMAND} ${EP_BASE}/Source/${name}_EP
-       "-DCMAKE_INSTALL_PREFIX=${EP_BASE}/Install/${name}_EP" 
-       "-DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}"
+       ${find_extproject_CMAKE_ARGS}
        WORKING_DIRECTORY ${EP_BASE}/Build/${name}_EP )
-
          
     include(${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake)  
 
