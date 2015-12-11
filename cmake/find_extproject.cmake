@@ -62,26 +62,41 @@ function(find_extproject name)
     endif()
     
     # search CMAKE_INSTALL_PREFIX
-    string (REGEX MATCHALL "(^|;)-DBUILD_SHARED_LIB[A-Za-z0-9_]*" _matchedVars "${find_extproject_CMAKE_ARGS}")   
+    string (REGEX MATCHALL "(^|;)-DBUILD_SHARED_LIBS[A-Za-z0-9_]*" _matchedVars "${find_extproject_CMAKE_ARGS}")   
     unset(_matchedVars)
     list(LENGTH _matchedVars _list_size)    
     if(_list_size EQUAL 0)
-        list(APPEND find_extproject_CMAKE_ARGS -DBUILD_SHARED_LIB=${BUILD_SHARED_LIBS})
+        list(APPEND find_extproject_CMAKE_ARGS -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS})
     endif()
+    
+    if(EXISTS ${EP_BASE}/Build/${name}_EP/ext_options.cmake) 
+        include(${EP_BASE}/Build/${name}_EP/ext_options.cmake)
+    endif()
+    
+    get_cmake_property(_variableNames VARIABLES)
+    string (REGEX MATCHALL "(^|;)WITH_[A-Za-z0-9_]*" _matchedVars "${_variableNames}") 
+    foreach(_variableName ${_matchedVars})
+        message(STATUS "${_variableName}=${${_variableName}}")
+        list(APPEND find_extproject_CMAKE_ARGS -D${_variableName}=${${_variableName}})
+    endforeach()
   
     ExternalProject_Add(${name}_EP
         GIT_REPOSITORY ${EP_URL}/${repo_name}
         CMAKE_ARGS ${find_extproject_CMAKE_ARGS}
     )
+        
+    find_package(Git)
+    if(NOT GIT_FOUND)
+      message(FATAL_ERROR "git is required")
+      return()
+    endif()
    
-    if(NOT EXISTS "${EP_BASE}/Build/${name}_EP/${repo_project}-exports.cmake")
-        find_package(Git)
-        if(NOT GIT_FOUND)
-          message(FATAL_ERROR "git is required")
-          return()
-        endif()
+    if(NOT EXISTS "${EP_BASE}/Source/${name}_EP/.git")
         execute_process(COMMAND ${GIT_EXECUTABLE} clone ${EP_URL}/${repo_name} ${name}_EP
            WORKING_DIRECTORY  ${EP_BASE}/Source)
+    else()    
+        execute_process(COMMAND ${GIT_EXECUTABLE} pull
+           WORKING_DIRECTORY  ${EP_BASE}/Source/${name}_EP)    
     endif()
      
     execute_process(COMMAND ${CMAKE_COMMAND} ${EP_BASE}/Source/${name}_EP
@@ -96,6 +111,9 @@ function(find_extproject name)
     set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${repo_project} PARENT_SCOPE)
     
     include_directories(${EP_BASE}/Build/${name}_EP ${EP_BASE}/Source/${name}_EP)
+    foreach (inc ${repo_include})
+        include_directories(${EP_BASE}/Build/${name}_EP/${inc} ${EP_BASE}/Source/${name}_EP/${inc})
+    endforeach ()    
     
     install( DIRECTORY ${EP_BASE}/Install/${name}_EP/ DESTINATION ${CMAKE_INSTALL_PREFIX} )
     

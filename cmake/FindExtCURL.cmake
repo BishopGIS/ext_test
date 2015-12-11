@@ -33,3 +33,5 @@ else()
     set(repo_project libcurlstatic)
 endif()
 
+set(repo_include "/include")
+

@@ -27,10 +27,14 @@
 
 set(TARGET_LINK_LIB ${TARGET_LINK_LIB} "")
 set(DEPENDENCY_LIB ${DEPENDENCY_LIB} "")
+set(WITHOPT ${WITHOPT} "")
 
 function(find_anyproject name)
 
     #cmake_parse_arguments(find_anyproject "${options}" ${ARGN} )
+    
+    set(WITHOPT "${WITHOPT}option(WITH_${name} \"Set ON to use ${name}\" ON)\n")
+    set(WITHOPT "${WITHOPT}option(WITH_${name}_INTERNAL \"Set ON to use internal ${name}\" OFF)\n" PARENT_SCOPE)
 
     option(WITH_${name} "Set ON to use ${name}" ON)
 
@@ -57,5 +61,6 @@ function(target_link_extlibraries name)
     add_dependencies(${name} ${DEPENDENCY_LIB})  
     list(REMOVE_DUPLICATES TARGET_LINK_LIB)
     target_link_libraries(${name} ${TARGET_LINK_LIB})
+    file(WRITE ${CMAKE_BINARY_DIR}/ext_options.cmake ${WITHOPT})
 endfunction()
 
