@@ -25,13 +25,12 @@
 # DEALINGS IN THE SOFTWARE.
 ################################################################################
 
-set(repo_name lib_curl)
+set(repo_name lib_lzma)
 
 if(BUILD_SHARED_LIBS)    
-    set(repo_project libcurl)
+    set(repo_project lzma)
 else()
-    set(repo_project libcurlstatic)
+    set(repo_project lzmastatic)
 endif()
 
 set(repo_include "")
-
