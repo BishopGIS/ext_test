@@ -20,12 +20,12 @@
 # along with this script.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-set(repo_name lib_lzma)
+set(repo_name lib_jbig)
 
 if(BUILD_SHARED_LIBS)    
-    set(repo_project lzma)
+    set(repo_project jbig)
 else()
-    set(repo_project lzmastatic)
+    set(repo_project jbigstatic)
 endif()
 
 set(repo_include "")

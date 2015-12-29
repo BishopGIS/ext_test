@@ -20,12 +20,14 @@
 # along with this script.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-set(repo_name lib_lzma)
+function(report_version name ver)
 
-if(BUILD_SHARED_LIBS)    
-    set(repo_project lzma)
-else()
-    set(repo_project lzmastatic)
-endif()
-
-set(repo_include "")
+    if(NOT WIN32)
+      string(ASCII 27 Esc)
+      set(BoldYellow  "${Esc}[1;33m")
+      set(ColourReset "${Esc}[m")
+    endif()    
+        
+    message("- ${BoldYellow}${name} version ${ver}${ColourReset}")
+    
+endfunction()  
