@@ -15,7 +15,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 message(STATUS "Test ExternalProject")
 
-include(find_anyproject)
+include(FindAnyProject)
 
 find_anyproject(ZLIB REQUIRED)
 find_anyproject(CURL REQUIRED CMAKE_ARGS
